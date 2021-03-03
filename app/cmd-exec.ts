@@ -51,9 +51,20 @@ export function clearMsg(num: number, msg: any) {
 }
 
 export async function replyAConfession(cfsNr: number, msg: any, args: any) {
+
+    if(args.length === 0) {
+        msg.channel.send("Vui lòng không gửi confession trống.");
+        return;
+    }
+
     let contentStr = "";
     for(let i = 1 ; i < args.length ; i++) {
         contentStr += args[i] + " ";
+    }
+
+    if(contentStr.length < 10) {
+        msg.channel.send("Vui lòng không gửi confession quá ngắn :3\nP/s: nhưng đừng dài quá, discord giới hạn 2000 kí tự nhé :3");
+        return;
     }
 
     let cfs = await dm.getConfessionId(cfsNr);
@@ -100,7 +111,6 @@ export async function updateServerCFSID(cfsID: any, msg: any, args: any) {
         msg.reply("You must be a server's owner to do this command");
         return;
     }
-    console.log(ownedServers[0].channels.cache.find((chan: any) => chan.name === cfsID ));
 
     /** Find channel by channel's id */
     let server: any;

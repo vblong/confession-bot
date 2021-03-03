@@ -34,6 +34,7 @@ bot.on('ready', async () => {
 bot.login(config.appToken);
 
 bot.on('message', async (msg: any) => {
+  
   if(msg.author.bot === false) {
     let now: Date = new Date();
     let nowStr = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
@@ -49,6 +50,7 @@ bot.on('message', async (msg: any) => {
   }
 
   if(msg.channel.type === 'dm') {
+    console.log(`${msg.author.username} sends: ${msg.content}`);
     if(msg.author.id != bot.user.id) {
       /**
        * If the message is from the bot then move to command section
