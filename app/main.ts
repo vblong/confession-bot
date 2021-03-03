@@ -42,7 +42,7 @@ bot.on('message', async (msg: any) => {
       (msg.channel.type === 'dm' ? "Private Message" : msg.channel.guild.name),
       (msg.channel.type === 'dm' ? "Private Message" : msg.channel.guild.id),
       msg.id,
-      new Date().toISOString()
+      new Date().toLocaleString ()
     );
   }
 
