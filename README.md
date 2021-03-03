@@ -6,6 +6,7 @@ When a member sends the bot a direct message, the bot will post the message agai
 
 ## Stacks
 
-Tested on Node.js v14.15.4
+Node.js v14.15.4
+
 discord.js master branch, on 03 March 2021: https://github.com/discordjs/discord.js
 
