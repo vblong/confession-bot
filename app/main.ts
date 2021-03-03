@@ -50,13 +50,21 @@ bot.on('message', async (msg: any) => {
   }
 
   if(msg.channel.type === 'dm') {
-    console.log(`${msg.author.username} sends: ${msg.content}`);
     if(msg.author.id != bot.user.id) {
+      console.log(`------${msg.author.username} sends: ${msg.content}`);
       /**
        * If the message is from the bot then move to command section
        */
       if(msg.content.startsWith(config.prefix)) {
         exec.exec(bot, msg);
+        return;
+      }
+
+      /**
+       * Prevent too short messages
+       */
+      if(msg.content.length < config.minimumConfessionLength) {
+        msg.channel.send("Vui lòng không gửi confession quá ngắn :3\nP/s: nhưng đừng dài quá, discord giới hạn 2000 kí tự nhé :3");
         return;
       }
       
