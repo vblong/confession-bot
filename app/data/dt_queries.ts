@@ -28,7 +28,6 @@ export const create_table_queries = [
         discordMsgID TEXT NOT NULL,
         serverName TEXT NOT NULL,
         serverID TEXT NOT NULL,
-        confessionID INT NOT NULL,
         createdTime DATETIME NOT NULL
     ) ENGINE=INNODB;`
 ];

@@ -105,3 +105,6 @@ dist
 
 # Ignore .js file, we code typescript here
 *.js
+
+# config.ts
+app/config.ts
