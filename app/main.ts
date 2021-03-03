@@ -64,7 +64,7 @@ bot.on('message', async (msg: any) => {
        * Prevent too short messages
        */
       if(msg.content.length < config.minimumConfessionLength) {
-        msg.channel.send("Vui lòng không gửi confession quá ngắn :3\nP/s: nhưng đừng dài quá, discord giới hạn 2000 kí tự nhé :3");
+        msg.channel.send("Vui lòng không gửi confession quá ngắn");
         return;
       }
       

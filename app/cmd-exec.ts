@@ -63,7 +63,7 @@ export async function replyAConfession(cfsNr: number, msg: any, args: any) {
     }
 
     if(contentStr.length < 10) {
-        msg.channel.send("Vui lòng không gửi confession quá ngắn :3\nP/s: nhưng đừng dài quá, discord giới hạn 2000 kí tự nhé :3");
+        msg.channel.send("Vui lòng không gửi confession quá ngắn.");
         return;
     }
 
