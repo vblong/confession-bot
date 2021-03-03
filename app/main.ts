@@ -35,6 +35,8 @@ bot.login(config.appToken);
 
 bot.on('message', async (msg: any) => {
   if(msg.author.bot === false) {
+    let now: Date = new Date();
+    let nowStr = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
     dm.saveMsgData(
       msg.content,
       msg.author.username,
@@ -42,7 +44,7 @@ bot.on('message', async (msg: any) => {
       (msg.channel.type === 'dm' ? "Private Message" : msg.channel.guild.name),
       (msg.channel.type === 'dm' ? "Private Message" : msg.channel.guild.id),
       msg.id,
-      new Date().toLocaleString ()
+      nowStr
     );
   }
 
