@@ -13,6 +13,6 @@ export function correctString(input: string) {
     input = input.split("(").join(":open_bracket:");
     input = input.split(")").join(":close_bracket:");
 
-    input = input.split(/[\u0800-\uFFFF]/g).join('');
+    // input = input.split(/[\u0800-\uFFFF]/g).join('');
     return input;
 }
