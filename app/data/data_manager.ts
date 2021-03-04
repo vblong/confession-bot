@@ -13,7 +13,8 @@ export function createMySQLTbls() {
         host: cf.MySQLConfig.ip,
         user: cf.MySQLConfig.username,
         password: cf.MySQLConfig.password,
-        database: cf.MySQLConfig.database_name
+        database: cf.MySQLConfig.database_name,
+        charset : 'utf8mb4'
     });
 
     conn.connect((err: any) => {
@@ -51,7 +52,8 @@ export function connect() {
             host: cf.MySQLConfig.ip,
             user: cf.MySQLConfig.username,
             password: cf.MySQLConfig.password,
-            database: cf.MySQLConfig.database_name
+            database: cf.MySQLConfig.database_name,
+            charset : 'utf8mb4'
         });
 
         db.connect((err: any) => {
