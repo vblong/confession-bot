@@ -46,6 +46,10 @@ export function cmdReplier(cmd: string, args: any, msg: any) {
 }
 
 export function clearMsg(num: number, msg: any) {
+    if(msg.channel.type === 'dm') {
+        msg.channel.send("Không thể xóa tin nhắn trong kênh DM");
+        return;
+    }
     msg.channel.bulkDelete(num).then(console.log).catch(console.log);
     console.log("Delete", num, "messages in channel '", msg.channel.name, "'");
 }
