@@ -26,8 +26,10 @@ export const create_table_queries = [
         authorName TEXT,
         authorID TEXT NOT NULL,
         discordMsgID TEXT NOT NULL,
-        serverName TEXT NOT NULL,
         serverID TEXT NOT NULL,
+        serverName TEXT,
+        channelID TEXT,
+        channelName TEXT,        
         createdTime DATETIME NOT NULL
     ) ENGINE=INNODB;`
 ];

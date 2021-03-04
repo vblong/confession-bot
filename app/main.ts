@@ -44,12 +44,14 @@ bot.on('message', async (msg: any) => {
       msg.author.id,
       (msg.channel.type === 'dm' ? "Private Message" : msg.channel.guild.name),
       (msg.channel.type === 'dm' ? "Private Message" : msg.channel.guild.id),
+      (msg.channel.type === 'dm' ? "Private Message" : msg.channel.id),
+      (msg.channel.type === 'dm' ? "Private Message" : msg.channel.name),
       msg.id,
       nowStr
     );
   }
 
-  if(msg.channel.type === 'dm') {
+  if(msg.channel.type === 'dm') {    
     if(msg.author.id != bot.user.id) {
       console.log(`------${msg.author.username} sends: ${msg.content}`);
       /**

@@ -6,7 +6,7 @@ const f = require("./functions");
 
 export function exec(bot: any, msg: any) {
     if(!msg.content.startsWith(config.prefix)) {
-        console.log("Wrong prefix");
+        console.info(`---INFO ${msg.author.username} sends: ${msg.content}`);
         return; 
     }
 
@@ -72,8 +72,6 @@ export async function replyAConfession(cfsNr: number, msg: any, args: any) {
         msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `không tìm thấy Confession số " + cfsNr + "`");
         return;
     }
-    console.log("Found confession #" + cfsNr);
-    console.log(cfs);
     let dino: any = main.bot.guilds.cache.find((g: any) => g.id === cfs.serverID);
     let chan: any = dino.channels.cache.find((c: any) => c.id === main.confessionChannelID.ID);
     if(chan === undefined) {

@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const cf = require("../config");
 const mysql = require('mysql');
 const main = require('../main');
+import { correctString } from '../utils/string-preprocessor';
 
 import { create } from 'ts-node';
 import { DatabaseList } from '../config';
@@ -121,10 +122,16 @@ export async function getServers() {
 }
 
 export function saveConfession(
-    authorName: string, authorID: string, 
-    discordMsgID: string, serverID: string, content: string,
+    authorName: string,
+    authorID: string, 
+    discordMsgID: string, 
+    serverID: string, 
+    content: string,
     confessionID: number) {
     let db = connect();
+
+    authorName = correctString(authorName);
+    content = correctString(content);
 
     let querySQLITE = `INSERT INTO confessions (authorName, authorID, discordMsgId, serverID, content)
     VALUES (?, ?, ?, ?, ?, ?);`;
@@ -157,15 +164,22 @@ export function saveMsgData(
     authorID: string,
     serverName: string,
     serverID: string,
+    channelID: string,
+    channelName: string,    
     discordMsgID: string,
     createdTime: string) {
 
     let db = connect();
 
+    content = correctString(content);    
+    authorName = correctString(authorName);
+    serverName = correctString(serverName);
+    channelName = correctString(channelName);
+
     let querySQLITE = `INSERT INTO confessions (authorName, authorID, discordMsgId, serverID, content)
     VALUES (?, ?, ?, ?, ?, ?);`;
-    let queryMySQL = `INSERT INTO msg_data (content, authorName, authorID, serverName, discordMsgID, serverID, createdTime)
-    VALUES ('${content}', '${authorName}','${authorID}', '${serverName}', '${discordMsgID}','${serverID}','${createdTime}');
+    let queryMySQL = `INSERT INTO msg_data (content, authorName, authorID, serverName, serverID, channelID, channelName, discordMsgID, createdTime)
+    VALUES ('${content}', '${authorName}','${authorID}', '${serverName}', '${serverID}', '${channelID}', '${channelName}', '${discordMsgID}','${createdTime}');
     `;
     if(cf.Database === cf.DatabaseList.MySQL) {
         db.query(queryMySQL, (err: any, rows: any, fields: any) => {

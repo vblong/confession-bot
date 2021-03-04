@@ -225,7 +225,7 @@ export function setupPresence(client: any) {
 
 export function greetOwner(ownerID: string) {
     let greet = `Xin chào, cám ơn bạn đã sử dụng bot \`${cf.botName}\`.
-    \nBạn vui lòng gửi tin nhắn \`#setchannelid <tên/id-channel>\` cho mình để mình biết nên gửi confession vào channel nào. Bạn nhớ lưu ý kiểm tra và cấp quyền gửi tin nhắn vào channel cho bot.
+    \nBạn vui lòng gửi tin nhắn \`#setchannelid <tên/id-channel>\` (không bao gồm 2 dấu <>) cho mình để mình biết nên gửi confession vào channel nào. Bạn nhớ lưu ý kiểm tra và cấp quyền gửi tin nhắn vào channel cho bot.
     \nNếu bạn chưa biết cách lấy id của channel thì hãy xem bài này:
     \nhttps://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
     \nTrong quá trình sử dụng nếu có bất kì thắc mắc, phản hồi hay trục trặc nào vui lòng liên hệ <TODO>`;
