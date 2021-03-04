@@ -36,12 +36,6 @@ bot.login(config.appToken);
 bot.on('message', async (msg: any) => {
   
   if(msg.author.bot === false) {
-    let chanName: string = msg.channel.name;
-    let chanASCII: string = "";
-    for(let i = 0 ; i < chanName.length ; i++) {
-      chanASCII += "|" + chanName.charCodeAt(i);
-    }
-    console.log(msg.channel.name, "-", chanASCII);
     let now: Date = new Date();
     let nowStr = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
     dm.saveMsgData(
