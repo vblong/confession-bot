@@ -36,7 +36,7 @@ export function cmdReplier(cmd: string, args: any, msg: any) {
             updateServerCFSID(channelID, msg, args);
             break;
         case "help":
-            if(msg.channel.type !== 'dm') break;
+            // if(msg.channel.type !== 'dm') break;
             sendHelpGuide(msg);
             break;
         default:
