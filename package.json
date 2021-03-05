@@ -15,7 +15,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc --project ./ && node ./app/main.js"
+    "build": "tsc --project ./",
+    "start": "tsc --project ./ && node ./app/main.js"
   },
   "keywords": [],
   "author": "",
