@@ -3,6 +3,41 @@ const dm = require('./data/data_manager');
 const Discord = require("discord.js");
 const main = require('./main');
 const f = require("./functions");
+import { BaseModule } from './modules/BaseModule';
+import { Moderator } from './modules/moderation/moderator-module';
+import { TTSpeaker } from './modules/tts/ttspeaker-module';
+
+export class Commander {
+    modules: Map<String, BaseModule> = new Map();
+
+    constructor() {
+        this.registerModules();
+    }
+
+    /** 
+     *  Whenever you define more class. Register them here
+     */
+    registerModules() {
+        this.modules.set("moderator", new Moderator());
+        this.modules.set("ttspeaker", new TTSpeaker());
+    }
+
+    process(cmd: String, args: any, msg: any) {
+        let foundCommand: boolean = false;
+        this.modules.forEach((module: BaseModule, moduleName: String) => {
+            if(module.getCommands().has(cmd)) {
+                console.log(`---Found command ${cmd}`);
+                module.exec(cmd, args, msg);
+                foundCommand = true;
+                return;
+            }
+        });
+
+        if(foundCommand === false) {
+            msg.channel.send(`Lệnh \`${cmd}\` không tồn tại. Gửi \`#help\` để xem hướng dẫn.`)
+        }
+    }
+}
 
 export function exec(bot: any, msg: any) {
     if(!msg.content.startsWith(config.prefix)) {
@@ -35,12 +70,15 @@ export function cmdReplier(cmd: string, args: any, msg: any) {
             let channelID = args[0];
             updateServerCFSID(channelID, msg, args);
             break;
-        case "help":
+        // case "help":
             // if(msg.channel.type !== 'dm') break;
-            sendHelpGuide(msg);
-            break;
+            // sendHelpGuide(msg);
+            // break;
         default:
-            msg.reply(`Lệnh \`${cmd}\` không tồn tại. Gửi \`#help\` để xem hướng dẫn.`)
+            // msg.reply(`Lệnh \`${cmd}\` không tồn tại. Gửi \`#help\` để xem hướng dẫn.`)
+
+            let commando: Commander = new Commander();
+            commando.process(cmd, args, msg);
             break;
     }
 }
@@ -50,8 +88,12 @@ export function clearMsg(num: number, msg: any) {
         msg.channel.send("Không thể xóa tin nhắn trong kênh DM");
         return;
     }
-    msg.channel.bulkDelete(num).then(console.log).catch(console.log);
-    console.log("Delete", num, "messages in channel '", msg.channel.name, "'");
+    msg.channel.bulkDelete(num)
+    .then((res: any) => {
+        console.log(`Delete **${num}** messages in channel **${msg.channel.name}**`);
+    }).catch((err: any) => {
+        console.log(`Error while deleting messages: ${err}`);
+    });
 }
 
 export async function replyAConfession(cfsNr: number, msg: any, args: any) {
