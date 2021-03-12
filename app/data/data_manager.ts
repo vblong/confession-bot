@@ -106,17 +106,7 @@ export async function getServers() {
                 }
             });
         } else if(cf.Database === cf.DatabaseList.SQLite) {
-            db.serialize(async () => {
-                db.each(query, [], (err: any, rows: any) => {
-                    if(err) {
-                        console.log(err);
-                        reject(err);
-                    } else {
-                        resolve(rows);
-                    }
-                    
-                });
-            });
+            console.log(`SQLITE is no more supported`);
         }
 
         close(db);
@@ -129,16 +119,16 @@ export function saveConfession(
     discordMsgID: string, 
     serverID: string, 
     content: string,
-    confessionID: number) {
+    confessionID: number,
+    approved: boolean = true,
+    confessionRepID: number = -1) {
     let db = connect();
 
     authorName = correctString(authorName);
     content = correctString(content);
 
-    let querySQLITE = `INSERT INTO confessions (authorName, authorID, discordMsgId, serverID, content)
-    VALUES (?, ?, ?, ?, ?, ?);`;
-    let queryMySQL = `INSERT INTO confessions (authorName, authorID, discordMsgID, serverID, content, confessionID)
-    VALUES ('${authorName}','${authorID}','${discordMsgID}','${serverID}','${content}',${confessionID});
+    let queryMySQL = `INSERT INTO confessions (authorName, authorID, discordMsgID, serverID, content, confessionID, approved, confessionRepID)
+    VALUES ('${authorName}','${authorID}','${discordMsgID}','${serverID}','${content}',${confessionID},${approved},${confessionRepID});
     `;
     if(cf.Database === cf.DatabaseList.MySQL) {
         db.query(queryMySQL, (err: any, rows: any, fields: any) => {
@@ -149,13 +139,7 @@ export function saveConfession(
             }
         });
     } else if(cf.Database === cf.DatabaseList.SQLite) {
-        db.run(querySQLITE, [authorName, authorID, discordMsgID, serverID, content, confessionID], (err: any) => {
-            if(err) {
-                console.log("Error while inserting confession to DB", err)
-            } else {
-                main.startingConfessionId = main.startingConfessionId + 1;
-            }
-        });
+        console.log("SQLIte is no longer supported");
     }
     close(db);
 }
@@ -215,8 +199,8 @@ export function runQuery(query: string) {
     return true;
 }
 export function saveServerOnDB(server: any) {
-    let query: string = `INSERT INTO servers (serverID, ownerID,confessionChannelID, serverName)
-    VALUES("${server.serverID}","${server.ownerID}","${server.confessionChannelID}","${server.serverName}");`
+    let query: string = `INSERT INTO servers (serverID, ownerID, serverName, prefix)
+    VALUES("${server.serverID}","${server.ownerID}","${server.serverName}","${server.prefix}");`
     runQuery(query);
 }
 
@@ -224,7 +208,13 @@ export function updateServerCFSIDOnDB(server: any) {
     let query: string = `UPDATE servers
     SET confessionChannelID = '${server.confessionChannelID}'
     WHERE servers.serverID = '${server.serverID}'`;
-    console.log("run this query");
+    return runQuery(query);
+}
+
+export function updateServerPendingCFSIDOnDB(server: any) {
+    let query: string = `UPDATE servers
+    SET confessionPendingID = '${server.confessionPendingID}'
+    WHERE servers.serverID = '${server.serverID}'`;
     return runQuery(query);
 }
 
@@ -240,8 +230,8 @@ export function close(db: any) {
     } else if(cf.Database === DatabaseList.SQLite) {
         db.close((err: any) => {
             if (err) {
-            console.error("SQLiteERR", err.message);
-            return;
+                console.error("SQLiteERR", err.message);
+                return;
             }
             console.log('Close the database connection.');
         });
@@ -350,4 +340,156 @@ export async function getConfessionChannelID() {
 
         close(db);
     })
+} 
+
+export async function getConfessionPendingID() {
+    return new Promise((resolve, reject) => {
+        let db = connect();
+    
+        let cfs: any = [];
+        let query = "SELECT confessionPendingID as ID FROM servers ORDER BY confessionPendingID DESC LIMIT 1;";
+        if(cf.Database === cf.DatabaseList.MySQL) {
+            db.query(query, (err: any, rows: any, fields: any) => {
+                if(err) {
+                    console.log("MySQLERRR", err);
+                    reject(err);
+                } else {
+                    cfs = rows[0];
+                    if(rows.length === 0) cfs = {ID: '0'};
+                    resolve(cfs);
+                }
+            });
+        } else if(cf.Database === cf.DatabaseList.SQLite) {
+            console.log(`SQLITE is no longer supported`);
+        }
+
+        close(db);
+    })
 }   
+
+export async function getUsedPrefixes() {
+    return new Promise((resolve, reject) => {
+        let db = connect();
+    
+        let prefixes: any = [];
+        let query = "SELECT prefix from servers";
+        if(cf.Database === cf.DatabaseList.MySQL) {
+            db.query(query, (err: any, rows: any, fields: any) => {
+                if(err) {
+                    console.log("MySQLERRR", err);
+                    reject(err);
+                } else {                    
+                    resolve(rows);
+                }
+            });
+        } else if(cf.Database === cf.DatabaseList.SQLite) {
+            console.error(`SQLITE is not supported anymore`);
+        }
+
+        close(db);
+    })
+}
+
+export function denyConfession(confessionObj: any) {
+    return new Promise((resolve, reject) => {
+        let db = connect();
+    
+        let query = `UPDATE confessions SET approved = 0, confessionID = -1 where discordMsgID = ${confessionObj.messageID}`;
+        if(cf.Database === cf.DatabaseList.MySQL) {
+            db.query(query, (err: any, rows: any, fields: any) => {
+                if(err) {
+                    console.log("MySQLERRR", err);
+                    reject(err);
+                } else {                    
+                    resolve(rows);
+                }
+            });
+        } else if(cf.Database === cf.DatabaseList.SQLite) {
+            console.error(`SQLITE is not supported anymore`);
+        }
+
+        close(db);
+    });
+}
+
+export function approveConfession(confessionObj: any) {
+    return new Promise(async (resolve, reject) => {
+        let db = connect();
+        let dbRecordID: any = await getConfessionIDByMessageID(confessionObj.messageID);
+        let query = `UPDATE confessions SET approved = 1, confessionID = '${confessionObj.confessionID}', discordMsgID = '${confessionObj.discordMsgID}' where id = ${dbRecordID[0].id}`;
+        if(cf.Database === cf.DatabaseList.MySQL) {
+            db.query(query, (err: any, rows: any, fields: any) => {
+                if(err) {
+                    console.log("MySQLERRR", err);
+                    reject(err);
+                } else {                    
+                    resolve(rows);
+                }
+            });
+        } else if(cf.Database === cf.DatabaseList.SQLite) {
+            console.error(`SQLITE is not supported anymore`);
+        }
+
+        close(db);
+    });
+}
+
+export function getConfessionIDByMessageID(messageID: string) {    
+    return new Promise((resolve, reject) => {
+        let db = connect();
+        let query = `SELECT id from confessions where discordMsgID = '${messageID}'`;
+        if(cf.Database === cf.DatabaseList.MySQL) {
+            db.query(query, (err: any, rows: any, fields: any) => {
+                if(err) {
+                    console.log("MySQLERRR", err);
+                    reject(err);
+                } else {                    
+                    resolve(rows);
+                }
+            });
+        } else if(cf.Database === cf.DatabaseList.SQLite) {
+            console.error(`SQLITE is not supported anymore`);
+        }
+        close(db);
+    });
+}
+
+export function getConfessionRepID(messageID: string) {
+    return new Promise((resolve, reject) => {
+        let db = connect();
+        let query = `SELECT id from confessions where discordMsgID = '${messageID}'`;
+        if(cf.Database === cf.DatabaseList.MySQL) {
+            db.query(query, (err: any, rows: any, fields: any) => {
+                if(err) {
+                    console.log("MySQLERRR", err);
+                    reject(err);
+                } else {                    
+                    resolve(rows);
+                }
+            });
+        } else if(cf.Database === cf.DatabaseList.SQLite) {
+            console.error(`SQLITE is not supported anymore`);
+        }
+        close(db);
+    });
+}
+
+export function getConfessionInfoByMsgID(messageID: string, column: string) {
+    return new Promise((resolve, reject) => {
+        let db = connect();
+        let query = `SELECT ${column} from confessions where discordMsgID = '${messageID}'`;
+        if(cf.Database === cf.DatabaseList.MySQL) {
+            db.query(query, (err: any, rows: any, fields: any) => {
+                if(err) {
+                    console.log("MySQLERRR", err);
+                    reject(err);
+                } else {                    
+                    resolve(rows);
+                }
+            });
+        } else if(cf.Database === cf.DatabaseList.SQLite) {
+            console.error(`SQLITE is not supported anymore`);
+        }
+        close(db);
+    });
+}

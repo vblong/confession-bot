@@ -12,23 +12,23 @@ export class TTSpeaker extends BaseModule{
         this.commands.set("speak", {commandName: "speak", commandHelp: speakHelp, commandFunc: this.speak});
     }
 
-    play(ref: TTSpeaker, args: String[] = [], msg: any = undefined) {
+    play(ref: TTSpeaker, args: string[] = [], msg: any = undefined) {
         console.log(`TODO play - args: ${args}`);
     }
 
-    stop(ref: TTSpeaker, args: String[] = [], msg: any = undefined) {
+    stop(ref: TTSpeaker, args: string[] = [], msg: any = undefined) {
         console.log("TODO stop");
     }
 
-    queue(ref: TTSpeaker, args: String[] = [], msg: any = undefined) {
+    queue(ref: TTSpeaker, args: string[] = [], msg: any = undefined) {
         console.log("TODO queue");
     }
 
-    skip(ref: TTSpeaker, args: String[] = [], msg: any = undefined) {
+    skip(ref: TTSpeaker, args: string[] = [], msg: any = undefined) {
         console.log("TODO skip");
     }
 
-    speak(ref: TTSpeaker, args: String[] = [], msg: any = undefined) {
+    speak(ref: TTSpeaker, args: string[] = [], msg: any = undefined) {
         console.log("TODO speak");
     }
 }

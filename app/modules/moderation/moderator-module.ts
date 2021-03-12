@@ -1,46 +1,34 @@
 import { BaseModule } from "../BaseModule";
-import { clearHelp, helpGeneral } from "./moderator-module-help-doc";
-const Discord = require("discord.js");
+import { clearHelp } from "./moderator-module-help-doc";
 
 export class Moderator extends BaseModule {
     constructor() {
         super();
-        this.commands.set("help", {commandName: "help", commandHelp: helpGeneral, commandFunc: this.help});
         this.commands.set("clear", {commandName: "clear", commandHelp: clearHelp, commandFunc: this.clear});
     }
 
-    clear(ref: Moderator, args: String[] = [], msg: any = undefined) {
+    clear(ref: Moderator, args: string[] = [], msg: any = undefined) {
         console.log("TODO play");
+
+        let num = 2;
+        if(args[0]) {
+            num = parseInt(args[0]) + 1;
+        }
+        ref.clearMsg(num, msg);
     }
 
-    help(ref: Moderator, args: String[] = [], msg: any = undefined) {
-        let commandNeedHelp = (args.length === 0 ? "" : args[0]);
-        const embed = new Discord.MessageEmbed();
-        embed.setColor("#A62019");
-
-        console.log(`???1 ${commandNeedHelp}`);
-        //  Send general help guide
-        if(commandNeedHelp === "") {
-            embed.setDescription(helpGeneral);
-        } else {
-            let helpDoc: String = ref.getHelp(args[0]);
-            embed.setDescription(helpDoc);
+    
+    clearMsg(num: number, msg: any) {
+        if(msg.channel.type === 'dm') {
+            msg.channel.send("Không thể xóa tin nhắn trong kênh DM");
+            return;
         }
-        
-        //  Send help guide for a specific command
-        msg.channel.send(embed);
+        msg.channel.bulkDelete(num)
+        .then((res: any) => {
+            console.log(`Delete **${num}** messages in channel **${msg.channel.name}**`);
+        }).catch((err: any) => {
+            console.log(`Error while deleting messages: ${err}`);
+        });
     }
 
-    getHelp(command: String, msg: any = undefined): String {
-        if(this.commands.has(command) === false) {
-            return `Unknown command \`${command}\``;
-        }
-
-        let help = this.commands.get(command)?.commandHelp;
-        if(help !== undefined) {
-            return help;
-        }
-
-        return `Command \`${command}\`'s help guide is not yet written.`;
-    }
 }

@@ -4,11 +4,12 @@ const Discord = require("discord.js");
 const main = require('./main');
 const f = require("./functions");
 import { BaseModule } from './modules/BaseModule';
+import { DocsModule } from './modules/docs/docs-module';
 import { Moderator } from './modules/moderation/moderator-module';
 import { TTSpeaker } from './modules/tts/ttspeaker-module';
 
 export class Commander {
-    modules: Map<String, BaseModule> = new Map();
+    modules: Map<string, BaseModule> = new Map();
 
     constructor() {
         this.registerModules();
@@ -20,11 +21,12 @@ export class Commander {
     registerModules() {
         this.modules.set("moderator", new Moderator());
         this.modules.set("ttspeaker", new TTSpeaker());
+        this.modules.set("docsmodule", new DocsModule());
     }
 
-    process(cmd: String, args: any, msg: any) {
+    process(cmd: string, args: any, msg: any) {
         let foundCommand: boolean = false;
-        this.modules.forEach((module: BaseModule, moduleName: String) => {
+        this.modules.forEach((module: BaseModule, moduleName: string) => {
             if(module.getCommands().has(cmd)) {
                 console.log(`---Found command ${cmd}`);
                 module.exec(cmd, args, msg);
@@ -63,6 +65,10 @@ export function cmdReplier(cmd: string, args: any, msg: any) {
         case "rep":
             if(msg.channel.type !== 'dm') break;
             let cfsNr = parseInt(args[0]);
+            if(isNaN(cfsNr)) {
+                msg.channel.send("ID confession không hợp lệ")
+                break;
+            }
             replyAConfession(cfsNr, msg, args);
             break;
         case "setchannelid":
@@ -70,13 +76,12 @@ export function cmdReplier(cmd: string, args: any, msg: any) {
             let channelID = args[0];
             updateServerCFSID(channelID, msg, args);
             break;
-        // case "help":
-            // if(msg.channel.type !== 'dm') break;
-            // sendHelpGuide(msg);
-            // break;
+        case "setpendingid":
+            if(msg.channel.type !== 'dm') break;
+            let pendingChannelID = args[0];
+            updateServerCFSPendingID(pendingChannelID, msg, args);
+            break;
         default:
-            // msg.reply(`Lệnh \`${cmd}\` không tồn tại. Gửi \`#help\` để xem hướng dẫn.`)
-
             let commando: Commander = new Commander();
             commando.process(cmd, args, msg);
             break;
@@ -97,55 +102,93 @@ export function clearMsg(num: number, msg: any) {
 }
 
 export async function replyAConfession(cfsNr: number, msg: any, args: any) {
-
     if(args.length === 0) {
         msg.channel.send("Vui lòng không gửi confession trống.");
         return;
     }
 
     let contentStr = "";
-    for(let i = 1 ; i < args.length ; i++) {
-        contentStr += args[i] + " ";
-    }
+    for(let i = 1 ; i < args.length ; i++) contentStr += args[i] + " ";
 
-    if(contentStr.length < 10) {
+    if(msg.attachments.size === 0 && contentStr.length < 10) {
         msg.channel.send("Vui lòng không gửi confession quá ngắn.");
         return;
     }
 
     let cfs = await dm.getConfessionId(cfsNr);
     if(cfs === undefined) {
-        msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `không tìm thấy Confession số " + cfsNr + "`");
+        msg.channel.send("Đã xảy ra lỗi, vui lòng liên hệ developer.\nLỗi: `không tìm thấy Confession số " + cfsNr + "`");
         return;
     }
+
     let dino: any = main.bot.guilds.cache.find((g: any) => g.id === cfs.serverID);
-    let chan: any = dino.channels.cache.find((c: any) => c.id === main.confessionChannelID.ID);
-    if(chan === undefined) {
-        msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `Không tìm thấy confession channel`");
-    }
-    chan.messages.fetch(cfs.discordMsgID).then(async (foundMessage: any) => { 
-    if(foundMessage) {
-        f.postConfession(main.bot, await f.buildConfessionMsg(msg, contentStr, cfsNr), foundMessage)
+    let pendingChannelID = await dm.getConfessionPendingID();
+    /**
+     * NO - PENDING
+     * Server has not specified any pending channel for confession
+     * So we gonna post the confession directly to the confession channel
+     */
+    if(pendingChannelID.ID === null) {
+        let confessionChannelID = await dm.getConfessionChannelID();
+        let chan: any = dino.channels.cache.find((c: any) => c.id === confessionChannelID.ID);
+        if(chan === undefined) {
+            msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `Không tìm thấy confession channel`");
+        }
+        chan.messages.fetch(cfs.discordMsgID)
+        .then(async (foundMessage: any) => { 
+            if(foundMessage) {
+                f.postConfession(main.bot, await f.buildConfessionMsg(msg, contentStr, cfsNr), foundMessage)
+                .then((result: any) => {
+                    msg.channel.send("Đã đăng confession thành công");
+                    let obj: any = {
+                        author: {
+                            username: msg.author.username,
+                            id: msg.author.id
+                        },
+                        content: msg.content,
+                        id: result.id,
+                        confessionRepID: cfsNr
+                    };
+                    f.saveConfession(main.bot, obj, main.s[0].serverID); 
+                })
+                .catch((err: any) => {
+                    msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `" + err + "`");
+                });
+            }
+        })
+        .catch((err: any) => {
+            msg.channel.send(`Đã xảy ra lỗi. Vui lòng liên hệ developer.\nChi tiết lỗi: \`${err}\``);
+        });
+    } else {
+        /**
+         * YES - PENDING
+         * Server has a channel for pending approval confession
+         */
+        let confessionChannelID = await dm.getConfessionChannelID();
+        let chan: any = dino.channels.cache.find((c: any) => c.id === confessionChannelID.ID);
+        if(chan === undefined) {
+            msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `Không tìm thấy pending channel`");
+        }
+        await f.postPendingConfession(main.bot, await f.buildPendingConfessionMsg(msg, contentStr, cfsNr))
         .then((result: any) => {
-            msg.channel.send("Đã đăng confession thành công");
+            msg.channel.send("Cám ơn bạn đã gửi confession. Confession của bạn sẽ được đăng sau khi được duyệt.");
             let obj: any = {
                 author: {
                 username: msg.author.username,
                 id: msg.author.id
                 },
                 content: msg.content,
-                id: result.id
+                id: result.id,
+                confessionRepID: cfsNr 
             };
-            f.saveConfession(main.bot, obj, main.s[0].serverID); 
+            f.saveConfession(main.bot, obj, main.s[0].serverID, false);    
         })
         .catch((err: any) => {
-            msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `" + err + "`");
-        });
+            msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer. Dùng lệnh `#help` để xem hướng dẫn sử dụng bot.");
+            msg.channel.send("Chi tiết lỗi: `" + err + "`");
+        });      
+        return;
     }
-    })
-    .catch((err: any) => {
-        msg.channel.send("Lỗi: không tìm thấy confession #" + cfsNr);
-    });
 }
 
 export async function updateServerCFSID(cfsID: any, msg: any, args: any) {
@@ -201,16 +244,56 @@ export async function updateServerCFSID(cfsID: any, msg: any, args: any) {
     
 }
 
-export function sendHelpGuide(msg: any) {
-    let helpGuide = `Chào bạn, cám ơn bạn đã sử dụng bot **${config.botName}** :3
-        \n**${config.botName}** là bot gửi confession được phát triển dành riêng cho server **${config.dedicatedServerName}**.
-        \nĐể gửi confession thì bạn chỉ cần nhắn tin trực tiếp cho bot với nội dung confession là được, bạn cũng có thể gửi kèm ảnh.         
-        \nĐể gửi confession trả lời 1 confession khác thì bạn nhắn cho bot với cú pháp \`#rep <id> <nội dung>\` (không bao gồm 2 dấu <>).        
-        \nVí dụ, để rep confession số 1 thì bạn nhắn \`#rep 1 chào bạn\`.
-        \nTrong quá trình sử dụng, nếu có bất kì trục trặc, thắc mắc hay góp ý vui lòng liên hệ admin :3
-        \nChỉ thế thôi, chúc bạn chơi vui :3
-    `;
-    const embed = new Discord.MessageEmbed().setDescription(helpGuide);
-    embed.setColor("#A62019");
-    msg.channel.send(embed);
+export async function updateServerCFSPendingID(pendingChannelID: any, msg: any, args: any) {
+    let ownedServers = f.getServerOwnerShip(msg.channel.recipient.id);
+    let found: boolean = false;
+    if(ownedServers.length === 0) {
+        msg.reply("You must be a server's owner to do this command");
+        return;
+    }
+
+    /** Find channel by channel's id */
+    let server: any;
+    ownedServers.forEach((g: any) => {
+        // console.log(g.name, "'s channels");
+        g.channels.cache.forEach((v: any, k: any) => {
+            // console.log(v.id, " ", v.name);
+            if(v.id === pendingChannelID) {
+                found = true;
+                server = {
+                    serverID: g.id,
+                    confessionChannelID: pendingChannelID,
+                };
+            }
+        });
+    });
+
+    /** If not found then find channel by channel's name */
+    if(!found) {
+        let channel: any = ownedServers[0].channels.cache.find((chan: any) => chan.name === pendingChannelID );
+        if(channel !== undefined) {
+            found = true;
+            server = {
+                serverID: channel.guild.id,
+                confessionPendingID: channel.id
+            }
+            pendingChannelID = channel.id;
+        }
+    }
+
+    if(!found) {
+        msg.channel.send(`I could not find the channel with the provided name/id *${pendingChannelID}*, please check again`);
+    } else {        
+        let result = dm.updateServerPendingCFSIDOnDB(server);
+        if(result) {
+            msg.channel.send("Pending confession channel has been set up successfully");
+            main.pendingChannelID = { ID: pendingChannelID };
+            main.s = await dm.getServers();
+
+        } else {
+            msg.channel.send("Pending confession channel update failed. Please contact developer");
+        }
+    }
+    
 }
+
