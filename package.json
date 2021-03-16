@@ -15,9 +15,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc --project ./",
-    "start": "tsc --project ./ && node ./app/main.js",
-    "start-prod": "tsc --project ./ && node ./app/main.js production"
+    "build": "tsc --build --clean && tsc --project ./",
+    "start": "tsc --build --clean && tsc --project ./ && node ./app/main.js",
+    "start-prod": "tsc --build --clean && tsc --project ./ && node ./app/main.js production"
   },
   "keywords": [],
   "author": "",
