@@ -10,6 +10,6 @@ export function correctString(input: string) {
      */
     input = input.split("'").join("''");
     input = input.split('"').join('""');
-    
+    input = input.split('\\').join('\\\\');
     return input;
 }
