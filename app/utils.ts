@@ -73,7 +73,7 @@ export class Utils {
         if(confessionChannelID.ID === null || channel === undefined) {
             error = "Server chưa thiết lập kênh confession. Dùng lệnh `#cfsid` để cài đặt. Lưu ý bot phải có quyền gửi tin nhắn vào channel đó."
         }
-        
+                
         if(error === undefined) {
             if(repMsg === undefined) {
                 await channel.send(content)

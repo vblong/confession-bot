@@ -219,9 +219,9 @@ export class DBControl {
         });
     }
 
-    async getConfessionId(cfsNr: any) {
+    async getConfession(cfsNr: any) {
         return new Promise((resolve, reject) => {
-            let query = `SELECT * FROM confessions where confessionID = ` + cfsNr+ `;`;
+            let query = `SELECT * FROM confessions where confessionID = ` + cfsNr+ ` LIMIT 1;`;
             this.queryP(query)
             .then((result: any) => { resolve(result); })
             .catch((err: any) => { reject(err); });
