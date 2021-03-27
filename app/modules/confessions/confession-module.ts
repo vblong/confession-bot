@@ -35,7 +35,7 @@ export class ConfessionModule extends BaseModule {
     async repCFS(ref: ConfessionModule, args: string[] = [], msg: any = undefined) {
         if(msg.channel.type !== 'dm') return;
 
-        if(args.length <= 1) {
+        if(msg.attachments.size === 0 && args.length <= 1) {
             msg.channel.send("Vui lòng không gửi confession trống.");
             return;
         }
@@ -54,7 +54,7 @@ export class ConfessionModule extends BaseModule {
             return;
         }
     
-        let cfs: any = await db.getConfessionId(cfsNr);
+        let cfs: any = await db.getConfession(cfsNr);
         if(cfs.length === 0) {
             msg.channel.send("Đã xảy ra lỗi, vui lòng liên hệ developer.\nLỗi: `không tìm thấy Confession số " + cfsNr + "`");
             return;
@@ -75,9 +75,10 @@ export class ConfessionModule extends BaseModule {
                 msg.channel.send("Đã xảy ra lỗi. Vui lòng liên hệ developer.\nLỗi: `Không tìm thấy confession channel`");
             }
             
-            chan.messages.fetch(cfs.discordMsgID)
+            
+            chan.messages.fetch(cfs[0].discordMsgID)
             .then(async (foundMessage: any) => { 
-                if(foundMessage) {
+                if(foundMessage) {            
                     ut.postConfession(await ut.buildConfessionMsg(msg, contentStr, cfsNr), foundMessage)
                     .then((result: any) => {
                         msg.channel.send("Đã đăng confession thành công");

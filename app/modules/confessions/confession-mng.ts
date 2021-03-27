@@ -14,7 +14,7 @@ export class ConfessionManager {
         let repMessage: any = undefined;
 
         if(confessionRepID[0].confessionRepID > 0) {
-            let cfs: any = await db.getConfessionId(confessionRepID[0].confessionRepID);
+            let cfs: any = await db.getConfession(confessionRepID[0].confessionRepID);
             if(cfs.length > 0) {
                 let dino: any = main.bot.guilds.cache.find((g: any) => g.id === cfs[0].serverID);
                 let confessionChannelID: any = await db.getConfessionChannelID(config.dedicatedServerID);
