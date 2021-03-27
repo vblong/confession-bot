@@ -108,3 +108,4 @@ dist
 
 # config.ts
 app/config.ts
+.vscode/settings.json
